@@ -16,7 +16,7 @@ exports.createBook = (req, res, next) => {
   book
     .save()
     .then(() => {
-      res.status(201).json({ message: "Objet enregistré !" });
+      res.status(201).json({ message: "Livre enregistré !" });
     })
     .catch((error) => {
       res.status(400).json({ error });
@@ -43,7 +43,7 @@ exports.modifyBook = (req, res, next) => {
           { _id: req.params.id },
           { ...bookObject, _id: req.params.id }
         )
-          .then(() => res.status(200).json({ message: "Objet modifié!" }))
+          .then(() => res.status(200).json({ message: "Livre modifié!" }))
           .catch((error) => res.status(401).json({ error }));
       }
     })
@@ -62,7 +62,7 @@ exports.deleteBook = (req, res, next) => {
         fs.unlink(`images/${filename}`, () => {
           Book.deleteOne({ _id: req.params.id })
             .then(() => {
-              res.status(200).json({ message: "Objet supprimé !" });
+              res.status(200).json({ message: "Livre supprimé !" });
             })
             .catch((error) => res.status(401).json({ error }));
         });
@@ -85,4 +85,51 @@ exports.getAllBooks = (req, res, next) => {
     .catch((error) => res.status(400).json({ error }));
 };
 
-exports.ratingBook = (req, res, next) => {};
+exports.ratingBook = (req, res, next) => {
+  Book.findOne({ _id: req.params.id }).then((book) => {
+    const isAlreadyRated = book.ratings.some(
+      (rate) => rate.userId === req.body.userId
+    );
+    if (isAlreadyRated) {
+      res.status(403).json({ message: "Already rated" });
+    } else {
+      try {
+        const bookRating = {
+          userId: req.body.userId,
+          grade: req.body.rating,
+        };
+        const newRatings = [...book.ratings, bookRating];
+        const newAverage =
+          newRatings.reduce((sum, rating) => sum + rating.grade, 0) /
+          newRatings.length;
+
+        Book.findOneAndUpdate(
+          { _id: req.params.id },
+          { ratings: newRatings, averageRating: newAverage },
+          { new: true }
+        )
+          .then((updatedBook) => {
+            res
+              .status(200)
+              .json({ message: "Updated successfully", updatedBook });
+          })
+          .catch((updateError) => {
+            res.status(500).json({ message: "Error rating the book" });
+          });
+      } catch (e) {
+        res.status(409).json({ message: "catch rated" });
+      }
+    }
+  });
+};
+
+exports.getBestRating = (req, res, next) => {
+  Book.find()
+    .then((books) => {
+      const bestratings = books
+        .sort((a, b) => b.averageRating - a.averageRating)
+        .splice(0, 3);
+      res.status(200).json(bestratings);
+    })
+    .catch((error) => res.status(400).json({ error }));
+};
