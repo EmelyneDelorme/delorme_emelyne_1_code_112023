@@ -111,13 +111,13 @@ exports.ratingBook = (req, res, next) => {
           .then((updatedBook) => {
             res
               .status(200)
-              .json({ message: "Updated successfully", updatedBook });
+              .json({ message: "Rated successfully", updatedBook });
           })
           .catch((updateError) => {
             res.status(500).json({ message: "Error rating the book" });
           });
       } catch (e) {
-        res.status(409).json({ message: "catch rated" });
+        res.status(409).json({ error });
       }
     }
   });
