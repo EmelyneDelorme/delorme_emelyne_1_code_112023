@@ -11,8 +11,7 @@ module.exports = (req, res, next) => {
     const fileName = name.replace(extension, "");
     const outputFileName = `${fileName}_${Date.now()}.webp`;
     const outputPath = path.join(__dirname, "..", "images", outputFileName);
-
-    sharp(req.file.buffer)
+    req.file.filename = sharp(req.file.buffer)
       .toFormat("webp", { quality: 50 })
       .resize(300, 500, {
         fit: sharp.fit.inside,
