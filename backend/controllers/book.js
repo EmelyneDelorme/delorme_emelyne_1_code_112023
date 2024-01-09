@@ -109,9 +109,7 @@ exports.ratingBook = (req, res, next) => {
           { new: true }
         )
           .then((updatedBook) => {
-            res
-              .status(200)
-              .json({ message: "Rated successfully", updatedBook });
+            res.status(200).json(updatedBook);
           })
           .catch((updateError) => {
             res.status(500).json({ message: "Error rating the book" });
